@@ -1,7 +1,11 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = 600;
-canvas.height = 600;
+
+// Set default canvas dimensions
+const defaultWidth = 600;
+const defaultHeight = 600;
+canvas.width = defaultWidth;
+canvas.height = defaultHeight;
 
 // Load images
 const earthImage = new Image();
@@ -47,11 +51,12 @@ function drawBackground() {
     ctx.drawImage(spaceBackground, bgX, bgY, spaceBackground.width, spaceBackground.height);
 }
 
-// Draw Earth using your custom image
+// Draw Earth using your custom image (increased size by 50%)
 function drawEarth() {
-    const earthSize = 150; // Adjust size to fit nicely in the canvas
+    const earthSize = 150 * 1.5; // Increase size by 50%
     ctx.drawImage(earthImage, 300 - earthSize / 2, 300 - earthSize / 2, earthSize, earthSize);
 }
+
 
 // Draw meteors using the custom meteor image (reduced size by 50%)
 function drawMeteors() {
@@ -92,6 +97,20 @@ function resetGameDisplay() {
     document.getElementById("guess").value = "";
 }
 
+// Dynamically resize the canvas
+function resizeCanvas() {
+    const container = document.getElementById("game-container");
+    const containerWidth = container.offsetWidth;
+    const scaleFactor = containerWidth / defaultWidth;
+
+    canvas.style.width = `${containerWidth}px`;
+    canvas.style.height = `${defaultHeight * scaleFactor}px`;
+}
+
+// Resize the canvas when the window resizes
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("load", resizeCanvas);
+
 // Update game
 function update() {
     if (!gameRunning) return;
@@ -102,6 +121,8 @@ function update() {
     drawMeteors();
     drawExplosions();
 
+    const earthRadius = (150 * 1.5) / 2; // Earth's updated radius
+
     meteors.forEach(meteor => {
         if (!meteor.collided) {
             meteor.x += meteor.dx;
@@ -110,7 +131,7 @@ function update() {
             // Adjusted collision detection
             const meteorCollisionRadius = 26 / 2; // Half the new meteor height
             let dist = Math.hypot(meteor.x - 300, meteor.y - 300); // Distance between meteor and Earth center
-            if (dist < 75 + meteorCollisionRadius) { // Earth's radius (75) + Meteor collision radius
+            if (dist < earthRadius + meteorCollisionRadius) { // Earth's radius + Meteor collision radius
                 meteor.collided = true;
                 collisionCount++;
                 document.getElementById("collision-count").textContent = collisionCount;
@@ -122,6 +143,7 @@ function update() {
     cleanupExplosions();
     requestAnimationFrame(update);
 }
+
 
 // Start game logic
 function startGame() {
