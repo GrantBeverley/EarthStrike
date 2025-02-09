@@ -13,43 +13,73 @@ body {
     height: auto;
     margin: 20px auto;
     display: inline-block;
-    width: 100%; /* Ensure the container adjusts to screen size */
+    width: 100%;
 }
 
 canvas {
-    width: 100%; /* Make the canvas responsive */
-    height: auto; /* Maintain aspect ratio */
+    width: 100%;
+    height: auto;
     display: block;
     margin: 0 auto;
-    background: black; /* Background color in case image doesn't load */
+    background: black;
 }
 
 #controls {
     margin-top: 20px;
 }
 
-input {
-    width: 50px;
-    padding: 5px;
-    text-align: center;
+#guess-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
 }
 
-button {
-    padding: 8px 15px;
+#guess {
+    font-size: 24px;
+    margin: 0 10px;
+    width: 50px;
+    text-align: center;
+    display: inline-block;
+}
+
+.guess-button {
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.guess-button:hover {
+    background-color: darkgreen;
+}
+
+#startButton {
+    padding: 10px 20px;
+    font-size: 16px;
     background-color: green;
     color: white;
     border: none;
     cursor: pointer;
-    font-size: 16px;
-    margin: 5px;
+    margin: 10px;
 }
 
-button:hover {
+#startButton:hover {
     background-color: darkgreen;
 }
 
 #playAgainButton {
+    padding: 10px 20px;
+    font-size: 16px;
     background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin: 10px;
 }
 
 #playAgainButton:hover {
@@ -74,5 +104,6 @@ button:hover {
     top: 10px;
     left: 10px;
 }
+
 
 

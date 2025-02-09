@@ -1,115 +1,111 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Set default canvas dimensions
+// Game Variables
 const defaultWidth = 600;
 const defaultHeight = 600;
 canvas.width = defaultWidth;
 canvas.height = defaultHeight;
 
-// Load images
 const earthImage = new Image();
-earthImage.src = "earth2.png"; // Custom Earth image
+earthImage.src = "earth2.png";
 
 const meteorImage = new Image();
-meteorImage.src = "meteor2.png"; // Custom Meteor image
+meteorImage.src = "meteor2.png";
 
 const spaceBackground = new Image();
-spaceBackground.src = "space.png"; // Space background image
+spaceBackground.src = "space.png";
 
-const meteors = [];
+let meteors = [];
 let collisionCount = 0;
 let gameRunning = false;
 let timer = 20;
-let explosions = []; // Store active explosions
+let explosions = [];
+let userGuess = 0;
 
-// Function to generate random values
-function random(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
-// Create meteors with random starting positions
+// Function to create meteors
 function createMeteors() {
-    meteors.length = 0; // Reset meteors
+    meteors = [];
     for (let i = 0; i < 10; i++) {
-        let angle = random(0, 2 * Math.PI);
-        let distance = random(200, 250);
+        let angle = Math.random() * 2 * Math.PI;
+        let distance = Math.random() * 50 + 200;
         meteors.push({
             x: 300 + Math.cos(angle) * distance,
             y: 300 + Math.sin(angle) * distance,
-            dx: random(-1.5, 1.5),
-            dy: random(-1.5, 1.5),
+            dx: Math.random() * 2 - 1,
+            dy: Math.random() * 2 - 1,
             collided: false
         });
     }
 }
 
-// Draw the centered space background
+// Draw background
 function drawBackground() {
-    const bgX = (canvas.width - spaceBackground.width) / 2; // Center horizontally
-    const bgY = (canvas.height - spaceBackground.height) / 2; // Center vertically
-    ctx.drawImage(spaceBackground, bgX, bgY, spaceBackground.width, spaceBackground.height);
+    ctx.drawImage(spaceBackground, 0, 0, canvas.width, canvas.height);
 }
 
-// Draw Earth using your custom image (increased size by 50%)
+// Draw Earth
 function drawEarth() {
-    const earthSize = 150 * 1.5; // Increase size by 50%
+    const earthSize = 150 * 1.5;
     ctx.drawImage(earthImage, 300 - earthSize / 2, 300 - earthSize / 2, earthSize, earthSize);
 }
 
-
-// Draw meteors using the custom meteor image (reduced size by 50%)
+// Draw meteors
 function drawMeteors() {
-    const meteorWidth = 57 / 2; // 50% of the original width
-    const meteorHeight = 52 / 2; // 50% of the original height
-    meteors.forEach(meteor => {
+    meteors.forEach((meteor) => {
         if (!meteor.collided) {
-            ctx.drawImage(meteorImage, meteor.x - meteorWidth / 2, meteor.y - meteorHeight / 2, meteorWidth, meteorHeight);
+            ctx.drawImage(meteorImage, meteor.x - 28.5, meteor.y - 26, 57, 52);
         }
     });
 }
 
-// Draw explosions (increased size by 50%)
+// Draw explosions
 function drawExplosions() {
-    const explosionFontSize = 20 * 1.5; // 50% larger than the original font size
-    explosions.forEach(explosion => {
+    explosions.forEach((explosion) => {
         ctx.fillStyle = "red";
-        ctx.font = `${explosionFontSize}px Arial`;
-        ctx.fillText("💥", explosion.x - explosionFontSize / 3, explosion.y + explosionFontSize / 3);
+        ctx.font = "30px Arial";
+        ctx.fillText("💥", explosion.x - 15, explosion.y + 10);
     });
 }
 
-// Remove explosions after 1 second
+// Cleanup explosions
 function cleanupExplosions() {
     const now = Date.now();
-    explosions = explosions.filter(explosion => now - explosion.timestamp < 1000);
+    explosions = explosions.filter((explosion) => now - explosion.timestamp < 1000);
 }
+
+// Update guess display
+function updateGuessDisplay() {
+    document.getElementById("guess").textContent = userGuess;
+}
+
+// Handle guess button clicks
+document.getElementById("decreaseGuess").addEventListener("click", () => {
+    if (userGuess > 0) {
+        userGuess--;
+        updateGuessDisplay();
+    }
+});
+
+document.getElementById("increaseGuess").addEventListener("click", () => {
+    if (userGuess < 10) {
+        userGuess++;
+        updateGuessDisplay();
+    }
+});
 
 // Reset game display
 function resetGameDisplay() {
-    createMeteors(); // Ensure meteors are regenerated
+    createMeteors();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBackground(); // Draw the space background
-    drawEarth(); // Draw the Earth on reset
-    drawMeteors(); // Draw the meteors on reset
+    drawBackground();
+    drawEarth();
+    drawMeteors();
     document.getElementById("collision-count").textContent = "0";
     document.getElementById("time-left").textContent = "20";
-    document.getElementById("guess").value = "";
+    userGuess = 0;
+    updateGuessDisplay();
 }
-
-// Dynamically resize the canvas
-function resizeCanvas() {
-    const container = document.getElementById("game-container");
-    const containerWidth = container.offsetWidth;
-    const scaleFactor = containerWidth / defaultWidth;
-
-    canvas.style.width = `${containerWidth}px`;
-    canvas.style.height = `${defaultHeight * scaleFactor}px`;
-}
-
-// Resize the canvas when the window resizes
-window.addEventListener("resize", resizeCanvas);
-window.addEventListener("load", resizeCanvas);
 
 // Update game
 function update() {
@@ -121,17 +117,17 @@ function update() {
     drawMeteors();
     drawExplosions();
 
-    const earthRadius = (150 * 1.5) / 2; // Earth's updated radius
+    const earthRadius = (150 * 1.5) / 2;
 
-    meteors.forEach(meteor => {
+    meteors.forEach((meteor) => {
         if (!meteor.collided) {
             meteor.x += meteor.dx;
             meteor.y += meteor.dy;
 
-            // Adjusted collision detection
-            const meteorCollisionRadius = 26 / 2; // Half the new meteor height
-            let dist = Math.hypot(meteor.x - 300, meteor.y - 300); // Distance between meteor and Earth center
-            if (dist < earthRadius + meteorCollisionRadius) { // Earth's radius + Meteor collision radius
+            const meteorCollisionRadius = 26 / 2;
+            const dist = Math.hypot(meteor.x - 300, meteor.y - 300);
+
+            if (dist < earthRadius + meteorCollisionRadius) {
                 meteor.collided = true;
                 collisionCount++;
                 document.getElementById("collision-count").textContent = collisionCount;
@@ -144,12 +140,9 @@ function update() {
     requestAnimationFrame(update);
 }
 
-
 // Start game logic
 function startGame() {
-    const userGuess = parseInt(document.getElementById("guess").value);
-
-    if (isNaN(userGuess) || userGuess < 0 || userGuess > 10) {
+    if (userGuess < 0 || userGuess > 10) {
         alert("Please enter a valid guess between 0 and 10.");
         return;
     }
@@ -165,7 +158,6 @@ function startGame() {
     createMeteors();
     update();
 
-    // Countdown timer
     const countdown = setInterval(() => {
         timer--;
         document.getElementById("time-left").textContent = timer;
@@ -181,10 +173,10 @@ function startGame() {
 function endGame() {
     gameRunning = false;
 
-    const userGuess = parseInt(document.getElementById("guess").value) || 0;
-    const message = userGuess === collisionCount
-        ? `Well done! Your guess of ${userGuess} was correct!`
-        : `Sorry, you guessed ${userGuess}, but ${collisionCount} actually happened.`;
+    const message =
+        userGuess === collisionCount
+            ? `Well done! Your guess of ${userGuess} was correct!`
+            : `Sorry, you guessed ${userGuess}, but ${collisionCount} actually happened.`;
 
     alert(message);
     document.getElementById("playAgainButton").style.display = "inline-block";
@@ -203,9 +195,4 @@ document.getElementById("startButton").addEventListener("click", startGame);
 document.getElementById("playAgainButton").addEventListener("click", playAgain);
 
 // Initialize the display
-spaceBackground.onload = resetGameDisplay; // Ensure background is drawn after loading
-
-
-
-
-
+spaceBackground.onload = resetGameDisplay;
